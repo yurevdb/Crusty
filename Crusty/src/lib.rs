@@ -1,18 +1,16 @@
-#![windows_subsystem = "windows"]
 #![allow(non_snake_case)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+// Extern crates
 extern crate glutin;
 extern crate gl;
 extern crate rand;
 
+// Modules
+mod application;
+
 use gl::types::*;
-use std::mem;
-use std::ptr;
-use std::str;
-use std::os::raw::c_void;
-use std::ffi::CString;
 use rand::prelude::*;
 use std::time::{Duration, Instant};
 
@@ -27,23 +25,27 @@ pub fn Start () {
     let mut eventsLoop = glutin::EventsLoop::new();
 
     // Create a window
-    let window = glutin::WindowBuilder::new()
+    let wb = glutin::WindowBuilder::new()
         .with_title(TITLE)
         .with_window_icon(Some(icon))
+        .with_decorations(true)
         .with_dimensions(glutin::dpi::LogicalSize::new(1920.0, 1080.0));
 
     // Create a windowed context that contains a rendercontext and a window/eventsloop
-    let context = glutin::ContextBuilder::new()
+    let windowedContext = glutin::ContextBuilder::new()
         .with_gl(glutin::GlRequest::Latest)
         .with_srgb(true)
-        .build_windowed(window, &eventsLoop)
+        .build_windowed(wb, &eventsLoop)
         .unwrap();
 
     // Make the windowcontext the current one
-    let gl_window = unsafe { context.make_current().unwrap() };
+    let windowedContext = unsafe { windowedContext.make_current().unwrap() };
+
+    // Get the window instance from the windowedContext
+    let window = windowedContext.window();
 
     // Load opengl with the correct proces address
-    let gl = gl::load_with(|s| gl_window.get_proc_address(s) as *const _);
+    let gl = gl::load_with(|s| windowedContext.get_proc_address(s) as *const _);
 
     // Set opengl data before starting
     unsafe {
@@ -67,7 +69,7 @@ pub fn Start () {
                         glutin::WindowEvent::CloseRequested => running = false,
                         glutin::WindowEvent::MouseInput { state, button, .. } => unsafe {
                             if state == glutin::ElementState::Pressed && button == glutin::MouseButton::Left {
-                                gl::ClearColor(thread_rng().gen::<f32>(), thread_rng().gen::<f32>(), thread_rng().gen::<f32>(), 1.0) 
+                                gl::ClearColor(thread_rng().gen::<f32>(), thread_rng().gen::<f32>(), thread_rng().gen::<f32>(), 1.0)
                             }
                         }
                         _ => (),
@@ -91,11 +93,11 @@ pub fn Start () {
             gl::Clear(gl::COLOR_BUFFER_BIT);
         }
 
-        gl_window.swap_buffers().unwrap();
+        windowedContext.swap_buffers().unwrap();
 
         // Set the title of the window with the current fps of the engine
         if updateInterval.elapsed().as_millis() >= 250 {
-            gl_window.window().set_title(&format!("{} - FPS: {:.0}", TITLE, 1.0 / (now.elapsed().as_micros() as f64 / 1_000_000.0 as f64)));
+            window.set_title(&format!("{} - FPS: {:.0}", TITLE, 1.0 / (now.elapsed().as_micros() as f64 / 1_000_000.0 as f64)));
             updateInterval = Instant::now();
         }
     }
