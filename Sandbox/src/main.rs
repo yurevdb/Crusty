@@ -3,5 +3,6 @@
 extern crate Crusty;
 
 fn main() {
-    Crusty::Start();
+    let app = Crusty::Application::New();
+    app.Run();
 }
