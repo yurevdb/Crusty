@@ -4,14 +4,17 @@
 #![allow(unused_imports)]
 #![allow(unused_mut)]
 
+// Extern crates
 extern crate glutin;
 extern crate gl;
 extern crate rand;
 
+// Useages
 use gl::types::*;
 use rand::prelude::*;
 use std::time::{Duration, Instant};
 
+// Constants
 const TITLE: &str = "Crusty";
 
 pub struct Application {
